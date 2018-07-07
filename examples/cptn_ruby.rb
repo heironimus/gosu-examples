@@ -221,7 +221,7 @@ class CptnRuby < (Example rescue Gosu::Window)
   
   def button_down(id)
     case id
-    when Gosu::KB_UP
+    when Gosu::KB_SPACE
       @cptn.try_to_jump
     when Gosu::KB_ESCAPE
       close
