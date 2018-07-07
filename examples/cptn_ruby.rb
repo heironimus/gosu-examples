@@ -192,7 +192,7 @@ class CptnRuby < (Example rescue Gosu::Window)
     super WIDTH, HEIGHT
     
     self.caption = "Cptn. Ruby"
-   kyle added this 
+    
     @sky = Gosu::Image.new("media/space.png", :tileable => true)
     @map = Map.new("media/cptn_ruby_map.txt")
     @cptn = Player.new(@map, 400, 100)
@@ -221,7 +221,7 @@ class CptnRuby < (Example rescue Gosu::Window)
   
   def button_down(id)
     case id
-    when Gosu::KB_SPACE
+    when Gosu::KB_UP
       @cptn.try_to_jump
     when Gosu::KB_ESCAPE
       close
