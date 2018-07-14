@@ -53,7 +53,7 @@ end
 
 # Player class.
 class Player
-  attr_reader :x, :y
+  attr_reader :x, :y, :score, :dead, :vy
 
   def initialize(map, x, y)
     @x, @y = x, y
@@ -64,7 +64,9 @@ class Player
     @standing, @walk1, @walk2, @jump = *Gosu::Image.load_tiles("media/cptn_ruby.png", 50, 50)
     # This always points to the frame that is currently drawn.
     # This is set in update, and used in draw.
-    @cur_image = @standing    
+    @cur_image = @standing
+    @score = 0
+    @dead = false
   end
 
   def draw
@@ -113,24 +115,43 @@ class Player
     @vy += 1
     # Vertical movement
     if @vy > 0
-      @vy.times { if would_fit(0, 1) then @y += 1 else @vy = 0 end }
+      @vy.times do
+        if would_fit(0, 1)
+          @y += 1
+        elsif @vy > 35
+          player_died
+        else
+          @vy = 0
+        end
+      end
     end
     if @vy < 0
       (-@vy).times { if would_fit(0, -1) then @y -= 1 else @vy = 0 end }
     end
   end
-  
+
+  def player_died
+    @dead = true
+  end
+
   def try_to_jump
-    if @map.solid?(@x, @y + 1)
+    #if @map.solid?(@x, @y + 1)
       @vy = -20
-    end
+    #end
   end
 
   def collect_gems(gems)
     # Same as in the tutorial game.
-    gems.reject! do |c|
-      (c.x - @x).abs < 50 and (c.y - @y).abs < 50
+    gems.each do |gem|
+      if touching_gem(gem)
+        gems.delete(gem)
+        @score += 1
+      end
     end
+  end
+
+  def touching_gem(gem)
+    (gem.x - @x).abs < 50 and (gem.y - @y).abs < 50
   end
 end
 
@@ -195,9 +216,11 @@ class CptnRuby < (Example rescue Gosu::Window)
 
     @sky = Gosu::Image.new("media/space.png", :tileable => true)
     @map = Map.new("media/cptn_ruby_map.txt")
+    @initial_gem_count = @map.gems.count
     @cptn = Player.new(@map, 400, 100)
     # The scrolling position is stored as top left corner of the screen.
     @camera_x = @camera_y = 0
+    @font = Gosu::Font.new(30)
   end
 
   def update
@@ -212,10 +235,16 @@ class CptnRuby < (Example rescue Gosu::Window)
   end
 
   def draw
-    @sky.draw 0, 0, 0
-    Gosu.translate(-@camera_x, -@camera_y) do
-      @map.draw
-      @cptn.draw
+    if @cptn.dead
+      Gosu::Font.new(100).draw("Game Over! #{@cptn.vy}", 100, 100, 0, 1.0, 1.0, Gosu::Color::RED)
+    else
+      @sky.draw 0, 0, 0
+      Gosu.translate(-@camera_x, -@camera_y) do
+        @map.draw
+        @cptn.draw
+      end
+      @font.draw("Gems Left: #{@map.gems.count}", 20, 20, 0, 1.0, 1.0, Gosu::Color::YELLOW)
+      @font.draw("Score: #{@cptn.score}", 20, 50, 0, 1.0, 1.0, Gosu::Color::YELLOW)
     end
   end
 
